@@ -8,9 +8,9 @@ with open("token.txt") as f:
 bot = TeleBot(token)
 
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
-                    .add(types.KeyboardButton('Места сбора.'))
+                    .add(types.KeyboardButton('Места сбора'))
                     .add(types.KeyboardButton('О проекте'))
-                    .add(types.KeyboardButton('Рейтинг школ.'))
+                    .add(types.KeyboardButton('Рейтинг школ'))
                     .add(types.KeyboardButton('Что можно сдавать в пункты приёма?')))
 
 
@@ -49,7 +49,7 @@ def rating(message: Message):
     )
 
 
-@bot.message_handler(func=(lambda message: message.text == "Места сбора."))
+@bot.message_handler(func=(lambda message: message.text == "Места сбора"))
 def places(message: Message):
     bot.send_message(message.chat.id, "Места сбора имеются в трёх городах.")
     bot.send_message(message.chat.id, "В каком городе вы хотите найти точки сбора?", reply_markup=main_menu_markup)
