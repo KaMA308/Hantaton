@@ -1,10 +1,12 @@
+from json import JSONDecoder
 from time import sleep
 
 from telebot import TeleBot
 from telebot.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
-with open("token.txt") as f:
-    token = f.readline().strip()
+with open("token.txt") as file:
+    token = file.readline().strip()
+
 bot = TeleBot(token)
 
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
@@ -12,45 +14,15 @@ main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                     .add(KeyboardButton('Точки сбора'))
                     .add(KeyboardButton('Рейтинг школ'))
                     .add(KeyboardButton('О проекте')))
-cities: dict[str, dict[str, dict[str, str | float]]] = {
-    "Сургут": {
-        "г. Сургут УЛ. 30 ЛЕТ ПОБЕДЫ, Д. 74": {
-            "latitude": 61.2574603,
-            "longitude": 73.4570286,
-            "description": """
-ежедневно 10:00 - 20:00
-обед 14:00 - 15:00
-тех. перерывы
-11:45 - 12:00 / 16:45 - 17:00"""
-        }
-    },
-    "Ханты-Мансийск": {
-        "УЛ. 30 ЛЕТ ПОБЕДЫ, Д. 74": {
-            "latitude": 61.2574603,
-            "longitude": 73.4570286,
-            "description": """
-ежедневно 10:00 - 20:00
-обед 14:00 - 15:00
-тех. перерывы
-11:45 - 12:00 / 16:45 - 17:00"""
-        }
-    },
-    "Нижневартовск": {
-        "УЛ. 30 ЛЕТ ПОБЕДЫ, Д. 74": {
-            "latitude": 61.2574603,
-            "longitude": 73.4570286,
-            "description": """
-ежедневно 10:00 - 20:00
-обед 14:00 - 15:00
-тех. перерывы
-11:45 - 12:00 / 16:45 - 17:00"""
-        }
-    },
-}
+cities: dict[str, dict[str, dict[str, str | float]]] = {}
 points_data: dict[str, dict[str, str | float]] = {}
 
 
 def load_points():
+    global cities, points_data
+    with open("information.json") as file:
+        cities = JSONDecoder().decode(file.read())
+    points_data = {}
     for city in cities.values():
         for key in city.keys():
             points_data[key] = city[key]
@@ -87,7 +59,7 @@ def rating(message: Message):
 
 @bot.message_handler(func=(lambda message: message.text == "Точки сбора"))
 def places(message: Message):
-    bot.send_message(message.chat.id, f"Места сбора имеются в {len(cities)} городах")
+    bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
     markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
     for i in cities.keys():
         markup.add(i)
