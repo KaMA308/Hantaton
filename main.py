@@ -1,17 +1,17 @@
 from time import sleep
 
-from telebot import types, TeleBot
-from telebot.types import Message, ReplyKeyboardMarkup
+from telebot import TeleBot
+from telebot.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
 with open("token.txt") as f:
     token = f.readline().strip()
 bot = TeleBot(token)
 
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
-                    .add(types.KeyboardButton('Точки сбора'))
-                    .add(types.KeyboardButton('О проекте'))
-                    .add(types.KeyboardButton('Рейтинг школ'))
-                    .add(types.KeyboardButton('Что можно сдавать в пункты приёма?')))
+                    .add(KeyboardButton('Что можно сдавать?'))
+                    .add(KeyboardButton('Точки сбора'))
+                    .add(KeyboardButton('Рейтинг школ'))
+                    .add(KeyboardButton('О проекте')))
 cities: dict[str, dict[str, dict[str, str | float]]] = {
     "Сургут": {
         "г. Сургут УЛ. 30 ЛЕТ ПОБЕДЫ, Д. 74": {
@@ -63,13 +63,7 @@ def welcome(message: Message):
     sleep(1)
     bot.send_message(message.chat.id, "Этот чат-бот покажет где можно утилизировать отходы в ХМАО.")
     sleep(2)
-    bot.send_message(message.chat.id, "Для начало:")
-    sleep(1)
-    markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
-              .add(types.KeyboardButton('В Ханты-Мансийске'))
-              .add(types.KeyboardButton('В Сургуте'))
-              .add(types.KeyboardButton('В Нижневартовске')))
-    bot.send_message(message.chat.id, "В каком городе ты живёшь?", reply_markup=markup)
+    back(message)
 
 
 @bot.message_handler(func=(lambda message: message.text == "О проекте"))
@@ -100,7 +94,7 @@ def places(message: Message):
     bot.send_message(message.chat.id, "\n".join(cities.keys()), reply_markup=markup)
 
 
-@bot.message_handler(func=(lambda message: message.text == "Что можно сдавать в пункты приёма?"))
+@bot.message_handler(func=(lambda message: message.text == "Что можно сдавать?"))
 def what_to_take(message: Message):
     bot.send_message(message.chat.id,
                      "Полностью со списком сдачи и требований сдачи можно ознакомиться по ссылке ниже:\n \
@@ -119,13 +113,13 @@ def trans(message: Message):
 
 
 @bot.message_handler(func=(lambda message: message.text == "обратно"))
-def places(message: Message):
+def back(message: Message):
     bot.send_message(message.chat.id, """
-Доступные опции:
-    О проекте
-    Что можно сдавать
+Что можно узнать:
+    Что можно сдавать?
     Точки сбора
-    Рейтинг школ""", reply_markup=main_menu_markup)
+    Рейтинг школ
+    О проекте""", reply_markup=main_menu_markup)
 
 
 @bot.message_handler(func=(lambda message: message.text in points_data.keys()))
