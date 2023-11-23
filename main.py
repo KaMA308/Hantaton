@@ -14,7 +14,7 @@ def welcome(message):
     bot.send_message(message.chat.id, f"Здравствуй, {name}.")
     sleep(1)
     bot.send_message(message.chat.id, "Этот чат-бот покажет где можно утилизировать отходы в ХМАО.")
-    sleep(3)
+    sleep(2)
     bot.send_message(message.chat.id, "Для начало:")
     sleep(1)
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
@@ -34,10 +34,12 @@ def trans(message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         item1 = types.KeyboardButton('Места сбора.')
         item2 = types.KeyboardButton('О нас.')
-        item3 = types.KeyboardButton('Что за баллы?')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
         markup.add(item1)
         markup.add(item2)
         markup.add(item3)
+        markup.add(item4)
         bot.send_message(message.chat.id, "УЛ. ЧЕХОВА, Д. 74")
         bot.send_location(message.from_user.id, 61.0039543, 69.0526839)
         bot.send_message(message.chat.id, "ежедневно 10:00 - 20:00 \nобед 14:00 - 15:00 \nтех. перерывы\
@@ -54,16 +56,16 @@ def trans(message):
         Всех размеров, цветов и толщины",
                              reply_markup=markup)
 
-
-
     elif sent == 'В Сургуте':
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         item1 = types.KeyboardButton('Места сбора.')
         item2 = types.KeyboardButton('О нас.')
-        item3 = types.KeyboardButton('Что за баллы?')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
         markup.add(item1)
         markup.add(item2)
         markup.add(item3)
+        markup.add(item4)
         bot.send_message(message.chat.id, "УЛ. 30 ЛЕТ ПОБЕДЫ, Д. 74")
         bot.send_location(message.from_user.id, 61.2574603, 73.4570286)
         bot.send_message(message.chat.id, "ежедневно 10:00 - 20:00 \nобед 14:00 - 15:00 \nтех. перерывы\
@@ -84,10 +86,12 @@ def trans(message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         item1 = types.KeyboardButton('Места сбора.')
         item2 = types.KeyboardButton('О нас.')
-        item3 = types.KeyboardButton('Что за баллы?')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
         markup.add(item1)
         markup.add(item2)
         markup.add(item3)
+        markup.add(item4)
         bot.send_message(message.chat.id, "УЛ. КОМСОМОЛЬСКОЕ ОЗЕРО, Д. 2")
         bot.send_location(message.from_user.id, 61.2574603, 73.4570286)
         bot.send_message(message.chat.id, "ежедневно 10:00 - 20:00 \nобед 14:00 - 15:00 \nтех. перерывы\
@@ -105,12 +109,14 @@ def trans(message):
                              reply_markup=markup)
     elif sent == "Места сбора.":
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-        item1 = types.KeyboardButton('В Ханты-Мансийске')
-        item2 = types.KeyboardButton('В Сургуте')
-        item3 = types.KeyboardButton('В Нижневартовске')
+        item1 = types.KeyboardButton('Места сбора.')
+        item2 = types.KeyboardButton('О нас.')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
         markup.add(item1)
         markup.add(item2)
         markup.add(item3)
+        markup.add(item4)
         bot.send_message(message.chat.id, "Места сбора имеются в трёх городах.")
         w = bot.send_message(message.chat.id, "В каком городе вы хотите найти точки сбора?", reply_markup=markup)
 
@@ -118,13 +124,41 @@ def trans(message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
         item1 = types.KeyboardButton('Места сбора.')
         item2 = types.KeyboardButton('О нас.')
-        item3 = types.KeyboardButton('Что за баллы?')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
         markup.add(item1)
         markup.add(item2)
         markup.add(item3)
-        w = bot.send_message(message.chat.id, "С 2022 года в ХМАО-Югре работает сеть экоцентров «Югра Собирает» - пунктов по приему вторичного сырья. Пункты открыты в Ханты-Мансийске, Нижневартовске и Сургуте.\n\
+        markup.add(item4)
+        w = bot.send_message(message.chat.id, " С 2022 года в ХМАО-Югре работает сеть экоцентров «Югра Собирает» - пунктов по приему вторичного сырья. Пункты открыты в Ханты-Мансийске, Нижневартовске и Сургуте.\n\
         У жителей округа появилась возможность воспитывать новые экологические привычки: сдавать на переработку пластик, стекло и макулатуру таким образом сокращать количество выбрасываемых отходов на полигон. Благодаря работе экоцентра «Югра Собирает», раздельный сбор отходов станет комфортным и привычным для горожан.\n\
-        АО «Югра-Экология» — информационный куратор сети экоцентров «Югра Собирает» — пунктов по приёму вторичного сырья.", reply_markup=markup)
+        АО «Югра-Экология» — информационный куратор сети экоцентров «Югра Собирает» — пунктов по приёму вторичного сырья.",
+                             reply_markup=markup)
+
+    elif sent == "Рейтинг школ.":
+        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        item1 = types.KeyboardButton('Места сбора.')
+        item2 = types.KeyboardButton('О нас.')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
+        markup.add(item1)
+        markup.add(item2)
+        markup.add(item3)
+        markup.add(item4)
+        w = bot.send_message(message.chat.id, "Рейтинг школ можно узнать по ссылке ниже: \n https://eco.blcp.ru/")
+
+    elif sent == "Что можно сдавать в пункты приёма?":
+        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        item1 = types.KeyboardButton('Места сбора.')
+        item2 = types.KeyboardButton('О нас.')
+        item3 = types.KeyboardButton('Рейтинг школ.')
+        item4 = types.KeyboardButton('Что можно сдавать в пункты приёма?')
+        markup.add(item1)
+        markup.add(item2)
+        markup.add(item3)
+        markup.add(item4)
+        w = bot.send_message(message.chat.id,
+                             "Полностью со списком сдачи и требований сдачи можно ознакомиться по ссылке ниже:\n https://sobiraet.yugra-ecology.ru/ecocenters")
 
 
 bot.polling(non_stop=True)
