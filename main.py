@@ -1,4 +1,4 @@
-from json import JSONDecoder
+from json import JSONDecoder, JSONEncoder
 from time import sleep
 
 from telebot import TeleBot
@@ -17,6 +17,17 @@ main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
 cities: dict[str, dict[str, dict[str, str | float]]] = {}
 points_data: dict[str, dict[str, str | float]] = {}
 
+rating_text = """
+Рейтинг школ можно узнать по ссылке ниже:
+https://eco.blcp.ru/"""
+what_to_take_text = """
+Полностью со списком сдачи и требований сдачи можно ознакомиться по ссылке ниже:
+https://sobiraet.yugra-ecology.ru/ecocenters"""
+about_text = """
+С 2022 года в ХМАО-Югре работает сеть экоцентров «Югра Собирает» - пунктов по приему вторичного сырья. Пункты открыты в Ханты-Мансийске, Нижневартовске и Сургуте.
+У жителей округа появилась возможность воспитывать новые экологические привычки: сдавать на переработку пластик, стекло и макулатуру таким образом сокращать количество выбрасываемых отходов на полигон. Благодаря работе экоцентра «Югра Собирает», раздельный сбор отходов станет комфортным и привычным для горожан.
+АО «Югра-Экология» — информационный куратор сети экоцентров «Югра Собирает» — пунктов по приёму вторичного сырья."""
+
 
 def load_points():
     global cities, points_data
@@ -26,6 +37,11 @@ def load_points():
     for city in cities.values():
         for key in city.keys():
             points_data[key] = city[key]
+
+
+def save_points():
+    with open("information.json", "w") as file:
+        file.write(JSONEncoder().encode(cities))
 
 
 @bot.message_handler(commands=["start"])
@@ -40,19 +56,18 @@ def welcome(message: Message):
 
 @bot.message_handler(func=(lambda message: message.text == "О проекте"))
 def about(message: Message):
-    bot.send_message(message.chat.id, """
-С 2022 года в ХМАО-Югре работает сеть экоцентров «Югра Собирает» - пунктов по приему вторичного сырья. Пункты открыты в Ханты-Мансийске, Нижневартовске и Сургуте.
-У жителей округа появилась возможность воспитывать новые экологические привычки: сдавать на переработку пластик, стекло и макулатуру таким образом сокращать количество выбрасываемых отходов на полигон. Благодаря работе экоцентра «Югра Собирает», раздельный сбор отходов станет комфортным и привычным для горожан.
-АО «Югра-Экология» — информационный куратор сети экоцентров «Югра Собирает» — пунктов по приёму вторичного сырья.""",
-                     reply_markup=main_menu_markup)
+    bot.send_message(
+        message.chat.id,
+        text=about_text,
+        reply_markup=main_menu_markup
+    )
 
 
 @bot.message_handler(func=(lambda message: message.text == "Рейтинг школ"))
 def rating(message: Message):
     bot.send_message(
         message.chat.id,
-        "Рейтинг школ можно узнать по ссылке ниже: \n\
-         https://eco.blcp.ru/",
+        text=rating_text,
         reply_markup=main_menu_markup
     )
 
@@ -68,10 +83,11 @@ def places(message: Message):
 
 @bot.message_handler(func=(lambda message: message.text == "Что можно сдавать?"))
 def what_to_take(message: Message):
-    bot.send_message(message.chat.id,
-                     "Полностью со списком сдачи и требований сдачи можно ознакомиться по ссылке ниже:\n \
-                      https://sobiraet.yugra-ecology.ru/ecocenters",
-                     reply_markup=main_menu_markup)
+    bot.send_message(
+        message.chat.id,
+        text=what_to_take_text,
+        reply_markup=main_menu_markup
+    )
 
 
 @bot.message_handler(func=(lambda message: message.text in cities.keys()))
