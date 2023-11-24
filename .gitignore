@@ -161,4 +161,4 @@ cython_debug/
 
 token.txt
 .idea/
-owners_ids.txt
+owners_names.txt

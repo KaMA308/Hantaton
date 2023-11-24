@@ -9,12 +9,12 @@ with open("token.txt") as file:
 
 bot = TeleBot(token)
 
-owners_ids: set[int] = set()
-with open("owners_ids.txt") as file:
+owners_ids: set[str] = set()
+with open("owners_names.txt") as file:
     for line in file:
         line = line.strip()
         if len(line) != 0:
-            owners_ids.add(int(line))
+            owners_ids.add(line)
 
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                     .add(KeyboardButton('Что можно сдавать?'))
@@ -77,7 +77,7 @@ def about(message: Message):
     bot.send_message(
         message.chat.id,
         text=about_text,
-        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
+        reply_markup=extended_markup if message.from_user.username in owners_ids else main_menu_markup
     )
 
 
@@ -86,7 +86,7 @@ def rating(message: Message):
     bot.send_message(
         message.chat.id,
         text=rating_text,
-        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
+        reply_markup=extended_markup if message.from_user.username in owners_ids else main_menu_markup
     )
 
 
@@ -104,7 +104,7 @@ def what_to_take(message: Message):
     bot.send_message(
         message.chat.id,
         text=what_to_take_text,
-        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
+        reply_markup=extended_markup if message.from_user.username in owners_ids else main_menu_markup
     )
 
 
@@ -126,7 +126,7 @@ def back(message: Message):
     Точки сбора
     Рейтинг школ
     О проекте""", reply_markup=main_menu_markup)
-    if message.from_user.id in owners_ids:
+    if message.from_user.username in owners_ids:
         bot.send_message(message.chat.id, """
 Инструменты редактирования:
     Изменить "Что можно сдавать?"
@@ -155,7 +155,7 @@ def save_about(message: Message):
 
 
 @bot.message_handler(
-    func=(lambda message: message.text == 'Изменить "О проекте"' and message.from_user.id in owners_ids))
+    func=(lambda message: message.text == 'Изменить "О проекте"' and message.from_user.username in owners_ids))
 def edit_about(message: Message):
     edit_about_users.add(message.from_user.id)
     bot.send_message(message.chat.id, """
@@ -185,7 +185,7 @@ def save_rating(message: Message):
 
 
 @bot.message_handler(
-    func=(lambda message: message.text == 'Изменить "Рейтинг школ"' and message.from_user.id in owners_ids))
+    func=(lambda message: message.text == 'Изменить "Рейтинг школ"' and message.from_user.username in owners_ids))
 def edit_rating(message: Message):
     edit_rating_users.add(message.from_user.id)
     bot.send_message(message.chat.id, """
@@ -215,7 +215,7 @@ def save_what(message: Message):
 
 
 @bot.message_handler(
-    func=(lambda message: message.text == 'Изменить "Что можно сдавать?"' and message.from_user.id in owners_ids))
+    func=(lambda message: message.text == 'Изменить "Что можно сдавать?"' and message.from_user.username in owners_ids))
 def edit_what(message: Message):
     edit_what_users.add(message.from_user.id)
     bot.send_message(message.chat.id, """
