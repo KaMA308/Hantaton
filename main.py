@@ -112,7 +112,7 @@ def save_welcome(message: Message):
 @bot.message_handler(commands=["start"])
 def welcome(message: Message):
     name = message.from_user.username
-    bot.send_message(message.chat.id, f"Здравствуй, {name}.")
+    bot.send_message(message.chat.id, "Здравствуй, {name}.")
     sleep(1)
     bot.send_message(message.chat.id, welcome_text)
     sleep(2)
@@ -245,6 +245,10 @@ def save_point_location(message: Message):
 def places(message: Message):
     bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
     markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
+    if len(cities) == 1:
+        message.text = next(iter(cities.keys()))
+        trans(message)
+        return
     for i in cities.keys():
         markup.add(i)
     bot.send_message(message.chat.id, "\n".join(cities.keys()), reply_markup=markup)
@@ -255,6 +259,10 @@ def trans(message: Message):
     data: dict[str, dict[str, str | float]] = cities.get(message.text)
     bot.send_message(message.chat.id, f"В {message.text} имеется {len(data)} точек сбора")
     markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
+    if len(data) == 1:
+        message.text = next(iter(data.keys()))
+        points(message)
+        return
     for i in data.keys():
         markup.add(i)
     bot.send_message(message.chat.id, "\n".join(data.keys()), reply_markup=markup)
