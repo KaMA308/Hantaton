@@ -31,7 +31,8 @@ extended_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                    .add(KeyboardButton('Рейтинг школ'))
                    .add(KeyboardButton('О проекте'))
                    .add(KeyboardButton('Добавить место сбора'))
-                   .add(KeyboardButton('Изменить вступительный текст"'))
+                   .add(KeyboardButton('Удалить место сбора'))
+                   .add(KeyboardButton('Изменить вступительный текст'))
                    .add(KeyboardButton('Изменить "О проекте"'))
                    .add(KeyboardButton('Изменить "Что можно сдавать?"'))
                    .add(KeyboardButton('Изменить "Рейтинг школ"'))
@@ -110,6 +111,9 @@ def save_welcome(message: Message):
     load_points()
     bot.send_message(message.chat.id, """Текст сохранён. Что бы увидеть вступление напишите /start""",
                      reply_markup=extended_markup)
+
+
+del_point: set[int] = set()
 
 
 @bot.message_handler(commands=["start"])
@@ -191,6 +195,20 @@ def add_points(message: Message):
     bot.send_message(
         message.chat.id,
         "Введите название города где находится место сбора",
+        reply_markup=(
+            ReplyKeyboardMarkup(one_time_keyboard=True)
+            .add(KeyboardButton('Отмена'))
+        )
+    )
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Удалить место сбора' and message.from_user.username in owners_ids))
+def del_points(message: Message):
+    del_point.add(message.from_user.id)
+    bot.send_message(
+        message.chat.id,
+        "Введите адрес где находится место сбора (Желательно скопировать и вставить из предыдущих сообщений)",
         reply_markup=(
             ReplyKeyboardMarkup(one_time_keyboard=True)
             .add(KeyboardButton('Отмена'))
@@ -338,11 +356,12 @@ edit_welcome_users: set[int] = set()
 
 @bot.message_handler(
     func=(lambda message: message.text == 'Отмена' and (
-            message.from_user.id in edit_about_users) or
-                          message.from_user.id in edit_what_users or
-                          message.from_user.id in edit_rating_users or
-                          message.from_user.id in edit_welcome_users or
-                          message.from_user.id in add_point.keys()))
+            message.from_user.id in edit_about_users or
+            message.from_user.id in edit_what_users or
+            message.from_user.id in edit_rating_users or
+            message.from_user.id in edit_welcome_users or
+            message.from_user.id in del_point or
+            message.from_user.id in add_point.keys())))
 def back_edit_about(message: Message):
     if message.from_user.id in edit_about_users:
         edit_about_users.remove(message.from_user.id)
@@ -352,7 +371,30 @@ def back_edit_about(message: Message):
         edit_rating_users.remove(message.from_user.id)
     elif message.from_user.id in edit_welcome_users:
         edit_welcome_users.remove(message.from_user.id)
+    elif message.from_user.id in del_point:
+        del_point.remove(message.from_user.id)
+    elif message.from_user.id in add_point:
+        add_point.pop(message.from_user.id)
     back(message)
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in del_point))
+def save_del_point(message: Message):
+    if message.text.strip() not in points_data:
+        bot.send_message(message.chat.id, "Точка не найдена")
+        return
+    del_point.remove(message.from_user.id)
+    for key, city in cities.items():
+        for i in city.keys():
+            if message.text.strip() == i:
+                city.pop(i)
+                break
+        if len(city) == 0:
+            cities.pop(key)
+            break
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, "Точка удалена", reply_markup=extended_markup)
 
 
 @bot.message_handler(
