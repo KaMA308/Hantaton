@@ -20,6 +20,7 @@ with open("owners_names.txt") as file:
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                     .add(KeyboardButton('Что можно сдавать?'))
                     .add(KeyboardButton('Точки сбора'))
+                    .add(KeyboardButton('Найди ближайшею точку'))
                     .add(KeyboardButton('Рейтинг школ'))
                     .add(KeyboardButton('О проекте')))
 
@@ -156,6 +157,15 @@ def what_to_take(message: Message):
     )
 
 
+@bot.message_handler(func=(lambda message: message.text == 'Найди ближайшею точку'))
+def find_first(message: Message):
+    bot.send_message(
+        message.chat.id,
+        text="Отошлите геопизицию средствами телеграмма и вам будет показана ближайшая точка",
+        reply_markup=extended_markup if message.from_user.username in owners_ids else main_menu_markup
+    )
+
+
 class Point:
     def __init__(self):
         self.city: str | None = None
@@ -228,6 +238,21 @@ def save_point_location(message: Message):
     )
 
 
+@bot.message_handler(content_types=['location'])
+def save_point_location(message: Message):
+    mi = 1000000000
+    longitude = message.location.longitude
+    latitude = message.location.latitude
+    mi_key = ""
+    for f, i in points_data.items():
+        if mi > (i["longitude"] - longitude) ** 2 + (i["latitude"] - latitude) ** 2:
+            mi = (i["longitude"] - longitude) ** 2 + (i["latitude"] - latitude) ** 2
+            mi_key = f
+    bot.send_message(message.chat.id, mi_key)
+    message.text = mi_key
+    points(message)
+
+
 @bot.message_handler(
     func=(lambda message: message.from_user.id in add_point.keys()))
 def save_point_location(message: Message):
@@ -280,21 +305,23 @@ def trans(message: Message):
     bot.send_message(message.chat.id, "\n".join(data.keys()), reply_markup=markup)
 
 
-@bot.inline_handler(func=(lambda message: message.text == "обратно"))
 @bot.message_handler(func=(lambda message: message.text == "обратно"))
 def back(message: Message):
     bot.send_message(message.chat.id, """
 Что можно узнать:
     Что можно сдавать?
     Точки сбора
+    Найди ближайшею точку
     Рейтинг школ
     О проекте""", reply_markup=main_menu_markup)
     if message.from_user.username in owners_ids:
         bot.send_message(message.chat.id, """
 Инструменты редактирования:
+    Добавить место сбора
+    Изменить вступительный текст"
+    Изменить "О проекте"
     Изменить "Что можно сдавать?"
-    Изменить "Рейтинг школ"
-    Изменить "О проекте" """, reply_markup=extended_markup)
+    Изменить "Рейтинг школ" """, reply_markup=extended_markup)
 
 
 edit_about_users: set[int] = set()
