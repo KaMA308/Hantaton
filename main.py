@@ -17,22 +17,19 @@ main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
 cities: dict[str, dict[str, dict[str, str | float]]] = {}
 points_data: dict[str, dict[str, str | float]] = {}
 
-rating_text = """
-Рейтинг школ можно узнать по ссылке ниже:
-https://eco.blcp.ru/"""
-what_to_take_text = """
-Полностью со списком сдачи и требований сдачи можно ознакомиться по ссылке ниже:
-https://sobiraet.yugra-ecology.ru/ecocenters"""
-about_text = """
-С 2022 года в ХМАО-Югре работает сеть экоцентров «Югра Собирает» - пунктов по приему вторичного сырья. Пункты открыты в Ханты-Мансийске, Нижневартовске и Сургуте.
-У жителей округа появилась возможность воспитывать новые экологические привычки: сдавать на переработку пластик, стекло и макулатуру таким образом сокращать количество выбрасываемых отходов на полигон. Благодаря работе экоцентра «Югра Собирает», раздельный сбор отходов станет комфортным и привычным для горожан.
-АО «Югра-Экология» — информационный куратор сети экоцентров «Югра Собирает» — пунктов по приёму вторичного сырья."""
+rating_text: str
+what_to_take_text: str
+about_text: str
 
 
 def load_points():
-    global cities, points_data
+    global cities, points_data, rating_text, what_to_take_text, about_text
     with open("information.json") as file:
-        cities = JSONDecoder().decode(file.read())
+        data = JSONDecoder().decode(file.read())
+        cities = data["cities"]
+        rating_text = data["rating_text"]
+        what_to_take_text = data["what_to_take_text"]
+        about_text = data["about_text"]
     points_data = {}
     for city in cities.values():
         for key in city.keys():
@@ -41,7 +38,12 @@ def load_points():
 
 def save_points():
     with open("information.json", "w") as file:
-        file.write(JSONEncoder().encode(cities))
+        file.write(JSONEncoder().encode({
+            "cities": cities,
+            "rating_text": rating_text,
+            "what_to_take_text": what_to_take_text,
+            "about_text": about_text,
+        }))
 
 
 @bot.message_handler(commands=["start"])
