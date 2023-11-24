@@ -27,10 +27,12 @@ extended_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                    .add(KeyboardButton('Точки сбора'))
                    .add(KeyboardButton('Рейтинг школ'))
                    .add(KeyboardButton('О проекте'))
+                   .add(KeyboardButton('Добавить место сбора'))
+                   .add(KeyboardButton('Изменить вступительный текст"'))
                    .add(KeyboardButton('Изменить "О проекте"'))
                    .add(KeyboardButton('Изменить "Что можно сдавать?"'))
                    .add(KeyboardButton('Изменить "Рейтинг школ"'))
-                   .add(KeyboardButton('Изменить "О проекте"')))
+                   )
 cities: dict[str, dict[str, dict[str, str | float]]] = {}
 points_data: dict[str, dict[str, str | float]] = {}
 
@@ -135,15 +137,6 @@ def rating(message: Message):
     )
 
 
-@bot.message_handler(func=(lambda message: message.text == "Точки сбора"))
-def places(message: Message):
-    bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
-    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
-    for i in cities.keys():
-        markup.add(i)
-    bot.send_message(message.chat.id, "\n".join(cities.keys()), reply_markup=markup)
-
-
 @bot.message_handler(func=(lambda message: message.text == "Что можно сдавать?"))
 def what_to_take(message: Message):
     bot.send_message(
@@ -151,6 +144,110 @@ def what_to_take(message: Message):
         text=what_to_take_text,
         reply_markup=extended_markup if message.from_user.username in owners_ids else main_menu_markup
     )
+
+
+class Point:
+    def __init__(self):
+        self.city: str | None = None
+        self.address: str | None = None
+        self.latitude: float | None = None
+        self.longitude: float | None = None
+        self.description: str | None = None
+
+
+add_point: dict[int, Point] = {}
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Добавить место сбора' and message.from_user.username in owners_ids))
+def add_points(message: Message):
+    add_point[message.from_user.id] = Point()
+    bot.send_message(
+        message.chat.id,
+        "Введите название города где находится место сбора",
+        reply_markup=(
+            ReplyKeyboardMarkup(one_time_keyboard=True)
+            .add(KeyboardButton('Отмена'))
+        )
+    )
+
+
+@bot.message_handler(
+    func=(lambda message: message.from_user.id in add_point.keys() and add_point[message.from_user.id].city is None))
+def save_point_city(message: Message):
+    add_point[message.from_user.id].city = message.text
+    bot.send_message(
+        message.chat.id,
+        "Введите адрес где находится место сбора (Город тоже должен быть в адресе)",
+        reply_markup=(
+            ReplyKeyboardMarkup(one_time_keyboard=True)
+            .add(KeyboardButton('Отмена'))
+        )
+    )
+
+
+@bot.message_handler(
+    func=(lambda message: message.from_user.id in add_point.keys() and add_point[message.from_user.id].address is None))
+def save_point_address(message: Message):
+    add_point[message.from_user.id].address = message.text
+    bot.send_message(
+        message.chat.id,
+        'Укажите геопозицию места сбора (Нажмите на скрепку в правом нижнем углу. Дальше снизу будет "location")',
+        reply_markup=(
+            ReplyKeyboardMarkup(one_time_keyboard=True)
+            .add(KeyboardButton('Отмена'))
+        )
+    )
+
+
+@bot.message_handler(
+    content_types=['location'],
+    func=(
+            lambda message: message.from_user.id in add_point.keys() and add_point[
+                message.from_user.id].longitude is None))
+def save_point_location(message: Message):
+    add_point[message.from_user.id].longitude = message.location.longitude
+    add_point[message.from_user.id].latitude = message.location.latitude
+    bot.send_message(
+        message.chat.id,
+        'Напишите описание места сбора. Копия написанного текста будет выводится при выводе данных о месте сбора',
+        reply_markup=(
+            ReplyKeyboardMarkup(one_time_keyboard=True)
+            .add(KeyboardButton('Отмена'))
+        )
+    )
+
+
+@bot.message_handler(
+    func=(lambda message: message.from_user.id in add_point.keys()))
+def save_point_location(message: Message):
+    add_point[message.from_user.id].description = message.text
+    point = add_point[message.from_user.id]
+    add_point.pop(message.from_user.id)
+    if point.city not in cities.keys():
+        cities[point.city] = {}
+
+    cities[point.city][point.address] = {
+        "longitude": point.longitude,
+        "latitude": point.latitude,
+        "description": point.description,
+    }
+    save_points()
+    load_points()
+    bot.send_message(
+        message.chat.id,
+        'Данные сохранены',
+        reply_markup=extended_markup
+    )
+
+
+@bot.message_handler(func=(lambda message: message.text == "Точки сбора"))
+def places(message: Message):
+    bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
+    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
+    for i in cities.keys():
+        markup.add(i)
+    bot.send_message(message.chat.id, "\n".join(cities.keys()), reply_markup=markup)
 
 
 @bot.message_handler(func=(lambda message: message.text in cities.keys()))
@@ -190,7 +287,8 @@ edit_welcome_users: set[int] = set()
             message.from_user.id in edit_about_users) or
                           message.from_user.id in edit_what_users or
                           message.from_user.id in edit_rating_users or
-                          message.from_user.id in edit_welcome_users))
+                          message.from_user.id in edit_welcome_users or
+                          message.from_user.id in add_point.keys()))
 def back_edit_about(message: Message):
     if message.from_user.id in edit_about_users:
         edit_about_users.remove(message.from_user.id)
