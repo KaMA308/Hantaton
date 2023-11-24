@@ -253,12 +253,13 @@ def save_point_location(message: Message):
 
 @bot.message_handler(func=(lambda message: message.text == "Точки сбора"))
 def places(message: Message):
-    bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
-    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
     if len(cities) == 1:
+        bot.send_message(message.chat.id, "\n".join(cities.keys()))
         message.text = next(iter(cities.keys()))
         trans(message)
         return
+    bot.send_message(message.chat.id, f"Точки сбора имеются в {len(cities)} городах")
+    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
     for i in cities.keys():
         markup.add(i)
     bot.send_message(message.chat.id, "\n".join(cities.keys()), reply_markup=markup)
@@ -267,17 +268,19 @@ def places(message: Message):
 @bot.message_handler(func=(lambda message: message.text in cities.keys()))
 def trans(message: Message):
     data: dict[str, dict[str, str | float]] = cities.get(message.text)
-    bot.send_message(message.chat.id, f"В {message.text} имеется {len(data)} точек сбора")
-    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
     if len(data) == 1:
+        bot.send_message(message.chat.id, "\n".join(data.keys()))
         message.text = next(iter(data.keys()))
         points(message)
         return
+    bot.send_message(message.chat.id, f"В городе {message.text} имеется {len(data)} точек сбора")
+    markup = ReplyKeyboardMarkup(one_time_keyboard=True).add("обратно")
     for i in data.keys():
         markup.add(i)
     bot.send_message(message.chat.id, "\n".join(data.keys()), reply_markup=markup)
 
 
+@bot.inline_handler(func=(lambda message: message.text == "обратно"))
 @bot.message_handler(func=(lambda message: message.text == "обратно"))
 def back(message: Message):
     bot.send_message(message.chat.id, """
