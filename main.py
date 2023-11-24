@@ -149,6 +149,8 @@ def save_about(message: Message):
     global about_text
     edit_about_users.remove(message.from_user.id)
     about_text = message.text
+    save_points()
+    load_points()
     bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
 
 
@@ -177,6 +179,8 @@ def save_rating(message: Message):
     global rating_text
     edit_rating_users.remove(message.from_user.id)
     rating_text = message.text
+    save_points()
+    load_points()
     bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
 
 
@@ -205,6 +209,8 @@ def save_what(message: Message):
     global what_to_take_text
     edit_what_users.remove(message.from_user.id)
     what_to_take_text = message.text
+    save_points()
+    load_points()
     bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
 
 
