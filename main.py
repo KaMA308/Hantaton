@@ -9,11 +9,27 @@ with open("token.txt") as file:
 
 bot = TeleBot(token)
 
+owners_ids: set[int] = set()
+with open("owners_ids.txt") as file:
+    for line in file:
+        line = line.strip()
+        if len(line) != 0:
+            owners_ids.add(int(line))
+
 main_menu_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                     .add(KeyboardButton('Что можно сдавать?'))
                     .add(KeyboardButton('Точки сбора'))
                     .add(KeyboardButton('Рейтинг школ'))
                     .add(KeyboardButton('О проекте')))
+
+extended_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
+                   .add(KeyboardButton('Что можно сдавать?'))
+                   .add(KeyboardButton('Точки сбора'))
+                   .add(KeyboardButton('Рейтинг школ'))
+                   .add(KeyboardButton('О проекте'))
+                   .add(KeyboardButton('Изменить "Что можно сдавать?"'))
+                   .add(KeyboardButton('Изменить "Рейтинг школ"'))
+                   .add(KeyboardButton('Изменить "О проекте"')))
 cities: dict[str, dict[str, dict[str, str | float]]] = {}
 points_data: dict[str, dict[str, str | float]] = {}
 
@@ -61,7 +77,7 @@ def about(message: Message):
     bot.send_message(
         message.chat.id,
         text=about_text,
-        reply_markup=main_menu_markup
+        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
     )
 
 
@@ -70,7 +86,7 @@ def rating(message: Message):
     bot.send_message(
         message.chat.id,
         text=rating_text,
-        reply_markup=main_menu_markup
+        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
     )
 
 
@@ -88,7 +104,7 @@ def what_to_take(message: Message):
     bot.send_message(
         message.chat.id,
         text=what_to_take_text,
-        reply_markup=main_menu_markup
+        reply_markup=extended_markup if message.from_user.id in owners_ids else main_menu_markup
     )
 
 
@@ -110,6 +126,40 @@ def back(message: Message):
     Точки сбора
     Рейтинг школ
     О проекте""", reply_markup=main_menu_markup)
+    if message.from_user.id in owners_ids:
+        bot.send_message(message.chat.id, """
+Инструменты редактирования:
+    Изменить "Что можно сдавать?"
+    Изменить "Рейтинг школ"
+    Изменить "О проекте" """, reply_markup=extended_markup)
+
+
+edit_about_users: set[int] = set()
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_about_users))
+def back_edit_about(message: Message):
+    edit_about_users.remove(message.from_user.id)
+    back()
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_about_users))
+def save_about(message: Message):
+    global about_text
+    edit_about_users.remove(message.from_user.id)
+    about_text = message.text
+    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Изменить "О проекте"' and message.from_user.id in owners_ids))
+def edit_about(message: Message):
+    edit_about_users.add(message.from_user.id)
+    bot.send_message(message.chat.id, """
+Напишите сообщение и копия его будет отправляться в разделе "О проекте"
+""", reply_markup=(ReplyKeyboardMarkup(one_time_keyboard=True)
+                   .add(KeyboardButton('Отмена'))))
 
 
 @bot.message_handler(func=(lambda message: message.text in points_data.keys()))
