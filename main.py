@@ -66,6 +66,47 @@ def save_points():
         }))
 
 
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_about_users))
+def save_about(message: Message):
+    global about_text
+    edit_about_users.remove(message.from_user.id)
+    about_text = message.text
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_rating_users))
+def save_rating(message: Message):
+    global rating_text
+    edit_rating_users.remove(message.from_user.id)
+    rating_text = message.text
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_what_users))
+def save_what(message: Message):
+    global what_to_take_text
+    edit_what_users.remove(message.from_user.id)
+    what_to_take_text = message.text
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_welcome_users))
+def save_welcome(message: Message):
+    global welcome_text
+    edit_welcome_users.remove(message.from_user.id)
+    welcome_text = message.text
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, """Текст сохранён. Что бы увидеть вступление напишите /start""",
+                     reply_markup=extended_markup)
+
+
 @bot.message_handler(commands=["start"])
 def welcome(message: Message):
     name = message.from_user.username
@@ -139,23 +180,27 @@ def back(message: Message):
 
 
 edit_about_users: set[int] = set()
+edit_rating_users: set[int] = set()
+edit_what_users: set[int] = set()
+edit_welcome_users: set[int] = set()
 
 
 @bot.message_handler(
-    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_about_users))
+    func=(lambda message: message.text == 'Отмена' and (
+            message.from_user.id in edit_about_users) or
+                          message.from_user.id in edit_what_users or
+                          message.from_user.id in edit_rating_users or
+                          message.from_user.id in edit_welcome_users))
 def back_edit_about(message: Message):
-    edit_about_users.remove(message.from_user.id)
+    if message.from_user.id in edit_about_users:
+        edit_about_users.remove(message.from_user.id)
+    elif message.from_user.id in edit_what_users:
+        edit_what_users.remove(message.from_user.id)
+    elif message.from_user.id in edit_rating_users:
+        edit_rating_users.remove(message.from_user.id)
+    elif message.from_user.id in edit_welcome_users:
+        edit_welcome_users.remove(message.from_user.id)
     back(message)
-
-
-@bot.message_handler(func=(lambda message: message.from_user.id in edit_about_users))
-def save_about(message: Message):
-    global about_text
-    edit_about_users.remove(message.from_user.id)
-    about_text = message.text
-    save_points()
-    load_points()
-    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
 
 
 @bot.message_handler(
@@ -168,26 +213,6 @@ def edit_about(message: Message):
                    .add(KeyboardButton('Отмена'))))
 
 
-edit_rating_users: set[int] = set()
-
-
-@bot.message_handler(
-    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_rating_users))
-def back_edit_rating(message: Message):
-    edit_rating_users.remove(message.from_user.id)
-    back(message)
-
-
-@bot.message_handler(func=(lambda message: message.from_user.id in edit_rating_users))
-def save_rating(message: Message):
-    global rating_text
-    edit_rating_users.remove(message.from_user.id)
-    rating_text = message.text
-    save_points()
-    load_points()
-    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
-
-
 @bot.message_handler(
     func=(lambda message: message.text == 'Изменить "Рейтинг школ"' and message.from_user.username in owners_ids))
 def edit_rating(message: Message):
@@ -198,26 +223,6 @@ def edit_rating(message: Message):
                    .add(KeyboardButton('Отмена'))))
 
 
-edit_what_users: set[int] = set()
-
-
-@bot.message_handler(
-    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_what_users))
-def back_edit_what(message: Message):
-    edit_what_users.remove(message.from_user.id)
-    back(message)
-
-
-@bot.message_handler(func=(lambda message: message.from_user.id in edit_what_users))
-def save_what(message: Message):
-    global what_to_take_text
-    edit_what_users.remove(message.from_user.id)
-    what_to_take_text = message.text
-    save_points()
-    load_points()
-    bot.send_message(message.chat.id, """Текст сохранён""", reply_markup=extended_markup)
-
-
 @bot.message_handler(
     func=(lambda message: message.text == 'Изменить "Что можно сдавать?"' and message.from_user.username in owners_ids))
 def edit_what(message: Message):
@@ -226,27 +231,6 @@ def edit_what(message: Message):
 Напишите сообщение и копия его будет отправляться в разделе "Что можно сдавать?"
 """, reply_markup=(ReplyKeyboardMarkup(one_time_keyboard=True)
                    .add(KeyboardButton('Отмена'))))
-
-
-edit_welcome_users: set[int] = set()
-
-
-@bot.message_handler(
-    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_welcome_users))
-def back_edit_welcome(message: Message):
-    edit_welcome_users.remove(message.from_user.id)
-    back(message)
-
-
-@bot.message_handler(func=(lambda message: message.from_user.id in edit_welcome_users))
-def save_welcome(message: Message):
-    global welcome_text
-    edit_welcome_users.remove(message.from_user.id)
-    welcome_text = message.text
-    save_points()
-    load_points()
-    bot.send_message(message.chat.id, """Текст сохранён. Что бы увидеть вступление напишите /start""",
-                     reply_markup=extended_markup)
 
 
 @bot.message_handler(
