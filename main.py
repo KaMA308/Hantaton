@@ -27,6 +27,7 @@ extended_markup = (ReplyKeyboardMarkup(one_time_keyboard=True)
                    .add(KeyboardButton('Точки сбора'))
                    .add(KeyboardButton('Рейтинг школ'))
                    .add(KeyboardButton('О проекте'))
+                   .add(KeyboardButton('Изменить "О проекте"'))
                    .add(KeyboardButton('Изменить "Что можно сдавать?"'))
                    .add(KeyboardButton('Изменить "Рейтинг школ"'))
                    .add(KeyboardButton('Изменить "О проекте"')))
@@ -36,16 +37,18 @@ points_data: dict[str, dict[str, str | float]] = {}
 rating_text: str
 what_to_take_text: str
 about_text: str
+welcome_text: str
 
 
 def load_points():
-    global cities, points_data, rating_text, what_to_take_text, about_text
+    global cities, points_data, rating_text, what_to_take_text, about_text, welcome_text
     with open("information.json") as file:
         data = JSONDecoder().decode(file.read())
         cities = data["cities"]
         rating_text = data["rating_text"]
         what_to_take_text = data["what_to_take_text"]
         about_text = data["about_text"]
+        welcome_text = data["welcome_text"]
     points_data = {}
     for city in cities.values():
         for key in city.keys():
@@ -54,11 +57,12 @@ def load_points():
 
 def save_points():
     with open("information.json", "w") as file:
-        file.write(JSONEncoder().encode({
+        file.write(JSONEncoder(ensure_ascii=False, indent=2).encode({
             "cities": cities,
             "rating_text": rating_text,
             "what_to_take_text": what_to_take_text,
             "about_text": about_text,
+            "welcome_text": welcome_text,
         }))
 
 
@@ -67,7 +71,7 @@ def welcome(message: Message):
     name = message.from_user.username
     bot.send_message(message.chat.id, f"Здравствуй, {name}.")
     sleep(1)
-    bot.send_message(message.chat.id, "Этот чат-бот покажет где можно утилизировать отходы в ХМАО.")
+    bot.send_message(message.chat.id, welcome_text)
     sleep(2)
     back(message)
 
@@ -141,7 +145,7 @@ edit_about_users: set[int] = set()
     func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_about_users))
 def back_edit_about(message: Message):
     edit_about_users.remove(message.from_user.id)
-    back()
+    back(message)
 
 
 @bot.message_handler(func=(lambda message: message.from_user.id in edit_about_users))
@@ -171,7 +175,7 @@ edit_rating_users: set[int] = set()
     func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_rating_users))
 def back_edit_rating(message: Message):
     edit_rating_users.remove(message.from_user.id)
-    back()
+    back(message)
 
 
 @bot.message_handler(func=(lambda message: message.from_user.id in edit_rating_users))
@@ -201,7 +205,7 @@ edit_what_users: set[int] = set()
     func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_what_users))
 def back_edit_what(message: Message):
     edit_what_users.remove(message.from_user.id)
-    back()
+    back(message)
 
 
 @bot.message_handler(func=(lambda message: message.from_user.id in edit_what_users))
@@ -220,6 +224,37 @@ def edit_what(message: Message):
     edit_what_users.add(message.from_user.id)
     bot.send_message(message.chat.id, """
 Напишите сообщение и копия его будет отправляться в разделе "Что можно сдавать?"
+""", reply_markup=(ReplyKeyboardMarkup(one_time_keyboard=True)
+                   .add(KeyboardButton('Отмена'))))
+
+
+edit_welcome_users: set[int] = set()
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Отмена' and message.from_user.id in edit_welcome_users))
+def back_edit_welcome(message: Message):
+    edit_welcome_users.remove(message.from_user.id)
+    back(message)
+
+
+@bot.message_handler(func=(lambda message: message.from_user.id in edit_welcome_users))
+def save_welcome(message: Message):
+    global welcome_text
+    edit_welcome_users.remove(message.from_user.id)
+    welcome_text = message.text
+    save_points()
+    load_points()
+    bot.send_message(message.chat.id, """Текст сохранён. Что бы увидеть вступление напишите /start""",
+                     reply_markup=extended_markup)
+
+
+@bot.message_handler(
+    func=(lambda message: message.text == 'Изменить вступительный текст' and message.from_user.username in owners_ids))
+def edit_welcome(message: Message):
+    edit_welcome_users.add(message.from_user.id)
+    bot.send_message(message.chat.id, """
+Напишите сообщение и копия его будет отправляться в вступлении
 """, reply_markup=(ReplyKeyboardMarkup(one_time_keyboard=True)
                    .add(KeyboardButton('Отмена'))))
 
