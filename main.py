@@ -1,3 +1,4 @@
+import time
 from json import JSONDecoder, JSONEncoder
 from time import sleep
 
@@ -114,7 +115,7 @@ def save_welcome(message: Message):
 @bot.message_handler(commands=["start"])
 def welcome(message: Message):
     name = message.from_user.username
-    bot.send_message(message.chat.id, "Здравствуй, {name}.")
+    bot.send_message(message.chat.id, f"Здравствуй, {name}.")
     sleep(1)
     bot.send_message(message.chat.id, welcome_text)
     sleep(2)
@@ -130,13 +131,18 @@ def about(message: Message):
     )
 
 
+statistic = {}
+statistic_last_update = 0
+
+
 @bot.message_handler(func=(lambda message: message.text == "Рейтинг школ"))
 def rating(message: Message):
-    data = JSONDecoder().decode(
-        requests.get("https://api.eco.blcp.ru/api/router/getcount?territory=&type_of_institution=0&unit_type=1").text)
+    global statistic
+    if time.time() - statistic_last_update > 6 * 60 * 60:
+        statistic = JSONDecoder().decode(requests.get("https://api.eco.blcp.ru/api/router/getcount").text)
     text = ""
-    for i in data[0:10:]:
-        text += i["school"] + "\n " + str(i["groups"]["Итого"]) + " балов\n"
+    for i in statistic[0:10:]:
+        text += i["school"] + "\n " + str(i["groups"]["Итого"]) + " баллов \n"
     bot.send_message(
         message.chat.id,
         text=text,
